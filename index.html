@@ -19,6 +19,7 @@
   <div class="group">
     <button id="btnNew">New</button><button id="btnOpen">Open</button><button id="btnSave" title="Ctrl+S">Save</button><button id="btnSaveAs" title="Ctrl+Shift+S">Save as</button>
     <button id="btnSamples" title="Open or merge a sample course">Samples</button>
+    <button id="btnGen" title="Build a random track that's been tested to work">Generator</button>
     <button id="btnDaily" title="Download and open today's featured track from GitHub">Sample of the day</button>
     <button id="btnUndo" title="Ctrl+Z">Undo</button><button id="btnRedo" title="Ctrl+Shift+Z">Redo</button>
   </div>
@@ -55,6 +56,16 @@
 <footer id="hud"><div id="hudTime">Edit mode</div><div id="hudTable"></div></footer>
 <div class="split v" id="splitL" title="Drag to resize"></div><div class="split v" id="splitR" title="Drag to resize"></div><div class="split h" id="splitH" title="Drag to resize"></div>
 <div id="samples" class="modal" hidden><div class="help-card samples-card"><header><b>Sample courses</b><span class="hint">Open one to look at and test it, or merge it into your track.</span><span style="flex:1"></span><button id="samplesClose" title="Esc">✕</button></header><div id="samplesBody"></div></div></div>
+<div id="gen" class="modal" hidden><div class="help-card gen-card"><header><b>Track generator</b><span class="hint">Adds random parts one at a time, tests each with real physics, and keeps only the ones marbles get through.</span><span style="flex:1"></span><button id="genClose" title="Esc">✕</button></header>
+<div id="genBody">
+  <label>Parts <input type="number" id="genCount" value="10" min="2" max="60" step="1"></label>
+  <label>Seed <input type="text" id="genSeed" placeholder="random"></label>
+  <label><input type="checkbox" id="genLifts" checked> Lifts</label>
+  <label><input type="checkbox" id="genPegs" checked> Peg boards</label>
+  <label><input type="checkbox" id="genLoops" checked> Loops</label>
+  <div class="gen-actions"><button id="genGo" class="primary">Generate</button><button id="genCancel" hidden>Cancel</button></div>
+  <div id="genStatus" class="hint">Replaces the current track. Uses this track's test settings.</div>
+</div></div></div>
 <div id="help" hidden><div class="help-card"><header><b>Marble Lab help</b><nav id="helpTabs"></nav><button id="helpClose" title="Esc">✕</button></header><div id="helpBody"></div></div></div>
 <script type="module" src="src/app.js"></script>
 </body>

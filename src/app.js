@@ -6,6 +6,7 @@ import { Sim } from './sim.js';
 import { DEMO } from './demo.js';
 import { SETTINGS, defaultSettings } from './settings.js';
 import { SAMPLES, instantiate } from './samples.js';
+import { Generator } from './generator.js';
 
 await RAPIER.init();
 const $ = (id) => document.getElementById(id);
@@ -296,6 +297,9 @@ const HELP = {
     <tr><td>Fly</td><td>${K('W')} ${K('A')} ${K('S')} ${K('D')}, ${K('E')} up, ${K('Q')} down, hold ${K('Shift')} to go faster</td></tr>
     <tr><td>Dolly</td><td>mouse wheel</td></tr>
     <tr><td>Focus on selection</td><td>${K('F')}</td></tr></table>
+    <h4>Generator</h4><p><b>Generator</b> builds a random track with the number of parts you choose. It adds one part at a time onto the last opening,
+    drops test marbles through it with real physics and only keeps parts they get through, backing up when it gets stuck. At the end it runs the whole
+    track and rebuilds any section where marbles were lost. Use the same <b>Seed</b> to get the same track again.</p>
     <h4>Ride</h4><p>Tick <b>Ride</b> while testing to sit inside a marble and see the track from its point of view. <b>W A S D</b> gives it a gentle push
     (relative to where you face), <b>Tab</b> hops into the next marble, and right-drag looks around freely. Your marble is marked <b>you</b> in the results.</p>
     <h4>Follow mode</h4><p>Tick <b>Follow</b> while testing to chase the lead marble. Right-drag still turns the view around it and the wheel changes the distance.</p>`,
@@ -620,6 +624,7 @@ addEventListener('keydown', (e) => {
   if (e.key === 'F1') { e.preventDefault(); toggleHelp(); return; }
   if (!$('help').hidden) { if (e.key === 'Escape') toggleHelp(false); return; }
   if (!$('samples').hidden) { if (e.key === 'Escape') toggleSamples(false); return; }
+  if (!$('gen').hidden) { if (e.key === 'Escape') toggleGen(false); return; }
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   if (e.key === '?') { toggleHelp(true); return; }
   if (e.key === '/') { e.preventDefault(); $('partSearch').focus(); $('partSearch').select(); return; }
@@ -767,6 +772,36 @@ for (const smp of SAMPLES) {
 function toggleSamples(on = $('samples').hidden) { if (on && sim) { toast('Stop the test first'); return; } $('samples').hidden = !on; if (on) keys.clear(); }
 $('btnSamples').onclick = () => toggleSamples(true); $('samplesClose').onclick = () => toggleSamples(false);
 $('samples').addEventListener('pointerdown', (e) => { if (e.target === $('samples')) toggleSamples(false); });
+
+// ---------- generator ----------
+let gen = null; // the running Generator, if any
+function toggleGen(on = $('gen').hidden) {
+  if (on && sim) { toast('Stop the test first'); return; }
+  if (!on && gen) gen.cancelled = true;
+  $('gen').hidden = !on; if (on) keys.clear();
+}
+$('btnGen').onclick = () => toggleGen(true); $('genClose').onclick = () => toggleGen(false);
+$('genCancel').onclick = () => gen && (gen.cancelled = true);
+$('genGo').onclick = async () => {
+  if (gen || !okToDiscard()) return;
+  const count = THREE.MathUtils.clamp(Math.round(+$('genCount').value || 10), 2, 60);
+  const seedText = $('genSeed').value.trim(), seed = seedText ? [...seedText].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7) : Math.floor(Math.random() * 1e9);
+  gen = new Generator(RAPIER, { count, seed, lifts: $('genLifts').checked, pegboards: $('genPegs').checked, loops: $('genLoops').checked, settings });
+  $('genGo').disabled = true; $('genCancel').hidden = false;
+  const status = (t) => ($('genStatus').textContent = t);
+  try {
+    const list = await gen.run(status);
+    if (gen.cancelled) { status('Cancelled.'); return; }
+    if (!list) { status(`Couldn't build a working track after ${gen.tests} tests. Try another seed or fewer parts.`); return; }
+    loadDoc({ pieces: list, settings }); filePath = null; markDirty(true);
+    const box = new THREE.Box3(); for (const g of groups.values()) box.expandByObject(g);
+    const c = box.getCenter(new THREE.Vector3()), r = box.getSize(new THREE.Vector3()).length();
+    camera.position.copy(c).add(new THREE.Vector3(0.6, 0.45, 0.65).multiplyScalar(r)); lookAt(c);
+    const v = gen.result, msg = `Generated ${list.length - 2} parts (seed ${seedText || seed}) · test run: ${v.finished}/${v.total} marbles finished`;
+    status(msg); toast(msg, 5000); toggleGen(false);
+  } catch (err) { status('Generator error: ' + err.message); }
+  finally { gen = null; $('genGo').disabled = false; $('genCancel').hidden = true; }
+};
 
 // ---------- ride a marble ----------
 const live = () => sim ? sim.marbles.filter((x) => x.body && x.status !== 'finished') : [];

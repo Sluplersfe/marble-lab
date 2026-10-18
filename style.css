@@ -53,3 +53,8 @@ button.active{background:#1f6fbf;border-color:#1f6fbf;color:#fff}
 #samplesBody{padding:10px 14px;overflow:auto;display:grid;gap:8px}
 .sample{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
 .sample b{display:block}.sample .hint{margin:2px 0 0}
+.gen-card{height:auto;width:min(520px,calc(100vw - 32px))}
+#genBody{padding:14px;display:grid;grid-template-columns:auto auto;gap:10px 16px;align-items:center}
+#genBody input[type=number],#genBody input[type=text]{width:110px}
+#genBody .gen-actions,#genStatus{grid-column:1/-1}
+.gen-actions{display:flex;gap:8px}
