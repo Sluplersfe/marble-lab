@@ -37,7 +37,7 @@ export class Sim {
       // A part can have several kinematic pieces (e.g. a lift's cup and its entry door); each gets its own body.
       const movers = g.userData.movers || (g.userData.moving ? [g.userData.moving] : []);
       const box = new THREE.Box3().setFromObject(g); minY = Math.min(minY, box.min.y);
-      if (p.type === 'lift') this.liftBoxes.push(box.clone().expandByScalar(0.3));
+      if (p.type === 'lift' || p.type === 'funnel') this.liftBoxes.push(box.clone().expandByScalar(0.3)); // marbles pass through each other here
       if (p.type === 'spawner') this.spawners.push({ p, emitted: 0, next: 0 });
       if (p.type === 'finish') this.finishes.push({ p, inv: g.matrixWorld.clone().invert() });
       if (p.type === 'checkpoint') this.checkpoints.push({ p, inv: g.matrixWorld.clone().invert() });
@@ -91,7 +91,7 @@ export class Sim {
       radius: p.radius, dist: 0, v: 0, vmax: 0, splits: {}, status: 'rolling', stillT: 0, startY: pos.y, finishT: null });
   }
 
-  // Marbles are in group 2. They hit the track (group 1) and, with "Hit each other" on, each other, except inside a lift, where they overlap so the cup takes several at once.
+  // Marbles are in group 2. They hit the track (group 1) and, with "Hit each other" on, each other, except inside lifts (so the cup takes several at once) and funnels (so they don't clog the neck).
   groupsFor(pos) {
     const ghost = !this.s.marblesHit || this.liftBoxes.some((b) => b.containsPoint(pos));
     return ghost ? (0x0002 << 16) | 0x0001 : (0x0002 << 16) | 0x0003;
