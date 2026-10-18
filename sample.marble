@@ -3,14 +3,14 @@
  "version": 3,
  "camera": {
   "pos": [
-   14,
-   8,
-   12
+   3.909075539848293,
+   16.07359049362993,
+   8.575267261983107
   ],
   "target": [
-   2,
-   3,
-   0
+   3.865367675695385,
+   15.538174677618743,
+   9.41872415274651
   ]
  },
  "settings": {
@@ -27,133 +27,528 @@
   "stuckTime": 4,
   "fallDepth": 15,
   "trailLength": 600,
-  "removeFinished": true
+  "removeFinished": true,
+  "marblesCollide": false
  },
  "pieces": [
   {
-   "id": 1,
-   "type": "spawner",
-   "pos": [
-    7,
-    2.4,
-    0
-   ],
-   "rotX": 0,
-   "rotY": 0,
-   "rotZ": 0,
-   "scale": [
-    1,
-    1,
-    1
-   ],
-   "count": 6,
-   "interval": 1.2,
-   "radius": 0.35,
-   "density": 1,
-   "bounce": 0.3,
-   "friction": 0.4,
-   "launchSpeed": 0,
-   "spread": 0.02,
-   "color": "#e8e8f0",
-   "randomColors": true
-  },
-  {
    "id": 2,
-   "type": "path",
+   "type": "funnel",
    "pos": [
-    7.5,
-    1.7,
+    0,
+    20,
     0
    ],
-   "rotX": 0,
    "rotY": 0,
-   "rotZ": 0,
+   "radius": 2.5,
+   "height": 1.6,
+   "hole": 0.45,
+   "spout": 0.6,
+   "friction": 0.3,
+   "color": "#bf8a4f",
    "scale": [
-    1,
-    1,
-    1
-   ],
-   "profile": "channel",
-   "width": 1,
-   "wall": 0.4,
-   "friction": 0.4,
-   "color": "#4f7dbf",
-   "points": [
-    [
-     0,
-     0,
-     0
-    ],
-    [
-     -4.9,
-     -1,
-     0
-    ]
+    1.25,
+    1.8,
+    1.25
    ]
   },
   {
    "id": 3,
-   "type": "lift",
+   "type": "spiral",
    "pos": [
     0,
-    0,
-    0
+    17.25,
+    2.25
    ],
-   "rotX": 0,
-   "rotY": 0,
-   "rotZ": 0,
+   "rotY": -11.25,
+   "profile": "gutter",
+   "width": 0.8,
+   "wall": 0.8,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "radius": 2.5,
+   "turns": 2,
+   "drop": 4,
+   "clockwise": false,
    "scale": [
     1,
     1,
     1
-   ],
-   "height": 5,
-   "speed": 2,
-   "dump": 60,
-   "settle": 0.6,
-   "gate": true,
-   "color": "#b05fbf"
+   ]
   },
   {
    "id": 4,
    "type": "path",
    "pos": [
-    0.5,
-    4.6,
-    0
+    0,
+    4.75,
+    5.5
    ],
-   "rotX": 0,
-   "rotY": 0,
-   "rotZ": 0,
+   "rotY": -90,
+   "profile": "channel",
+   "width": 0.8,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f9fbf",
+   "points": [
+    [
+     -3.3,
+     8.55,
+     0,
+     0,
+     1,
+     2.05
+    ],
+    [
+     0.5,
+     7.25,
+     0
+    ],
+    [
+     10.5,
+     -0.75,
+     0,
+     45,
+     1,
+     1.55
+    ],
+    [
+     11.5,
+     0,
+     -3,
+     60,
+     1,
+     1.95
+    ],
+    [
+     9.25,
+     -1,
+     -6,
+     60,
+     1,
+     1.65
+    ],
+    [
+     4,
+     -1.25,
+     -9,
+     -45,
+     1,
+     1.6
+    ],
+    [
+     5.5,
+     -1.25,
+     -12.75,
+     -41.25,
+     1,
+     1.4
+    ],
+    [
+     9.5,
+     -1.775,
+     -14,
+     -37.5,
+     1,
+     1.65
+    ],
+    [
+     15.25,
+     -2.75,
+     -12.65,
+     15,
+     1,
+     1.2
+    ],
+    [
+     19.25,
+     -2.925,
+     -12.75,
+     0,
+     1.25,
+     1
+    ],
+    [
+     20.25,
+     -3,
+     -12.75,
+     0,
+     1.25,
+     1
+    ]
+   ],
    "scale": [
     1,
     1,
     1
    ],
-   "profile": "channel",
-   "width": 1,
-   "wall": 0.4,
-   "friction": 0.4,
-   "color": "#4f7dbf",
-   "points": [
-    [
-     0,
-     0,
-     0
-    ],
-    [
-     5,
-     -1,
-     0
-    ]
+   "endDir": [
+    1,
+    0,
+    0
+   ],
+   "startDir": [
+    -0.992,
+    0.127,
+    0
    ]
   },
   {
    "id": 5,
    "type": "finish",
    "pos": [
-    6.2,
-    3.4,
+    3.5,
+    0.75,
+    31
+   ],
+   "rotY": 0,
+   "sx": 2,
+   "sy": 1.6,
+   "sz": 2,
+   "scale": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "id": 8,
+   "type": "lift",
+   "pos": [
+    12.5,
+    1.5,
+    36.5
+   ],
+   "rotX": 0,
+   "rotY": 90,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "height": 25,
+   "speed": 5,
+   "dump": 60,
+   "color": "#b05fbf",
+   "settle": 0.6,
+   "gate": true
+  },
+  {
+   "id": 10,
+   "type": "pegboard",
+   "pos": [
+    9,
+    5.75,
+    34.5
+   ],
+   "rotX": 0,
+   "rotY": -90,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "width": 5.4,
+   "height": 10,
+   "depth": 0.95,
+   "rows": 10,
+   "cols": 13,
+   "pegRadius": 0.05,
+   "bounce": 1,
+   "color": "#6f6fbf",
+   "clearance": 0.95,
+   "distributor": true
+  },
+  {
+   "id": 12,
+   "type": "funnel",
+   "pos": [
+    12.25,
+    24.25,
+    34
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "radius": 2.5,
+   "height": 1.6,
+   "hole": 0.45,
+   "spout": 0.6,
+   "friction": 0.3,
+   "color": "#bf8a4f"
+  },
+  {
+   "id": 19,
+   "type": "spiral",
+   "pos": [
+    10.5,
+    22,
+    34.5
+   ],
+   "rotX": 0,
+   "rotY": -105,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "gutter",
+   "width": 1,
+   "wall": 0.6,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "radius": 2.5,
+   "turns": 2,
+   "drop": 4,
+   "clockwise": false
+  },
+  {
+   "id": 20,
+   "type": "path",
+   "pos": [
+    10.648,
+    18.456,
+    34.51
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "tube",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     -0.892,
+     -0.115,
+     -0.058
+    ],
+    [
+     -1.5,
+     -0.25,
+     0
+    ],
+    [
+     -1.75,
+     -1.5,
+     0
+    ]
+   ],
+   "centered": true,
+   "startDir": [
+    0.99,
+    0.127,
+    0.065
+   ],
+   "endDir": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "id": 21,
+   "type": "path",
+   "pos": [
+    12.25,
+    23.8,
+    34
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "tube",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0,
+     -0.819,
+     0
+    ],
+    [
+     -1.155,
+     -1.279,
+     0.793
+    ],
+    [
+     -1.883,
+     -1.383,
+     0.434
+    ]
+   ],
+   "centered": true,
+   "startDir": [
+    0,
+    1,
+    0
+   ],
+   "endDir": [
+    -0.89,
+    -0.127,
+    -0.439
+   ]
+  },
+  {
+   "id": 22,
+   "type": "funnel",
+   "pos": [
+    9,
+    3.75,
+    34.5
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    0.9,
+    1,
+    1.25
+   ],
+   "radius": 2.5,
+   "height": 1.6,
+   "hole": 0.45,
+   "spout": 0.6,
+   "friction": 0.3,
+   "color": "#bf8a4f"
+  },
+  {
+   "id": 26,
+   "type": "path",
+   "pos": [
+    7.25,
+    1.5,
+    34.75
+   ],
+   "rotX": 0,
+   "rotY": 165,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "channel",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     3,
+     -0.6,
+     0,
+     -30
+    ],
+    [
+     4.5,
+     -1.2,
+     2
+    ]
+   ],
+   "startDir": [
+    -0.933,
+    0.259,
+    0.25
+   ]
+  },
+  {
+   "id": 29,
+   "type": "path",
+   "pos": [
+    7.105,
+    1.832,
+    34.75
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "tube",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     0.779,
+     0.209,
+     0
+    ],
+    [
+     1.895,
+     0.662,
+     -0.25
+    ],
+    [
+     1.895,
+     1.468,
+     -0.25
+    ]
+   ],
+   "centered": true,
+   "startDir": [
+    -0.966,
+    -0.259,
+    0
+   ],
+   "endDir": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "id": 35,
+   "type": "spawner",
+   "pos": [
+    0,
+    22.5,
     0
    ],
    "rotX": 0,
@@ -164,9 +559,159 @@
     1,
     1
    ],
-   "sx": 2,
-   "sy": 1.5,
-   "sz": 2
+   "count": 35,
+   "interval": 0.75,
+   "radius": 0.35,
+   "density": 1,
+   "bounce": 0.3,
+   "friction": 0.4,
+   "launchSpeed": 0,
+   "spread": 2,
+   "color": "#e8e8f0",
+   "randomColors": true
+  },
+  {
+   "id": 37,
+   "type": "booster",
+   "pos": [
+    12.75,
+    1.75,
+    25.75
+   ],
+   "rotX": 0,
+   "rotY": -90,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "length": 2,
+   "width": 1,
+   "accel": 15,
+   "maxSpeed": 8,
+   "color": "#00897b"
+  },
+  {
+   "id": 42,
+   "type": "path",
+   "pos": [
+    0,
+    19.07,
+    0
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "tube",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     0,
+     0,
+     0,
+     0,
+     1.15,
+     1.2
+    ],
+    [
+     0,
+     -0.9,
+     0.4
+    ],
+    [
+     0.3,
+     -1.2,
+     1.5
+    ],
+    [
+     -0.075,
+     -1.3,
+     2.4,
+     0,
+     1,
+     0.8
+    ]
+   ],
+   "centered": true,
+   "startDir": [
+    0,
+    1,
+    0
+   ],
+   "endDir": [
+    -0.38,
+    -0.127,
+    0.916
+   ]
+  },
+  {
+   "id": 43,
+   "type": "path",
+   "pos": [
+    15,
+    0.5,
+    29
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "tube",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     -2.25,
+     1.19,
+     -1.25
+    ],
+    [
+     -2.375,
+     1.825,
+     0.325,
+     0,
+     1,
+     1
+    ],
+    [
+     -2.425,
+     1.6,
+     2.625,
+     0,
+     1,
+     1
+    ],
+    [
+     -2.5,
+     1.55,
+     4.9
+    ]
+   ],
+   "startDir": [
+    0,
+    0,
+    -1
+   ],
+   "endDir": [
+    0,
+    0,
+    1
+   ]
   }
  ]
 }
