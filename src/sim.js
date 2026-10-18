@@ -133,6 +133,7 @@ export class Sim {
     }
     for (const sp of this.spawners) if (sp.emitted < sp.p.count && this.time >= sp.next) { this.spawn(sp); sp.emitted++; sp.next = this.time + sp.p.interval; }
     for (const a of this.actors) TYPES[a.p.type].act(a.p, a.g, a.state, H, live, this); // parts that push marbles
+    if (this.steer?.m.body) { const m = this.steer.m, k = m.mass * S.steerAccel * H; m.body.applyImpulse({ x: this.steer.dir.x * k, y: 0, z: this.steer.dir.z * k }, true); } // Ride mode pushes
     this.world.step();
     const lp = new THREE.Vector3();
     for (const m of live) {
