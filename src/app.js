@@ -63,11 +63,14 @@ canvas.addEventListener('mousedown', (e) => { if (e.button === 2) { look.active 
 addEventListener('mouseup', (e) => { if (e.button === 2 && look.active) { look.active = false; document.exitPointerLock?.(); } });
 addEventListener('mousemove', (e) => {
   if (!look.active) return;
+  if (ride.on) { ride.yaw -= e.movementX * 0.0025; ride.pitch = THREE.MathUtils.clamp(ride.pitch - e.movementY * 0.0025, -1.2, 1.2); return; }
   look.yaw -= e.movementX * 0.0025;
   look.pitch = THREE.MathUtils.clamp(look.pitch - e.movementY * 0.0025, -1.55, 1.55);
 });
 const follow = { target: null, dist: 5 };
-canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (follow.target) { follow.dist = THREE.MathUtils.clamp(follow.dist * (e.deltaY > 0 ? 1.15 : 0.87), 1.5, 40); return; } camera.position.addScaledVector(forward(), -Math.sign(e.deltaY) * (keys.has('shift') ? 3 : 1)); }, { passive: false });
+// Ride: the camera sits inside one marble and faces where it is rolling; right-drag glances around (it springs back).
+const ride = { on: false, id: null, heading: new THREE.Vector3(0, 0, -1), yaw: 0, pitch: 0 };
+canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (ride.on) return; if (follow.target) { follow.dist = THREE.MathUtils.clamp(follow.dist * (e.deltaY > 0 ? 1.15 : 0.87), 1.5, 40); return; } camera.position.addScaledVector(forward(), -Math.sign(e.deltaY) * (keys.has('shift') ? 3 : 1)); }, { passive: false });
 addEventListener('blur', () => keys.clear());
 function updateCamera(dt) {
   camera.rotation.set(look.pitch, look.yaw, 0);
@@ -294,6 +297,8 @@ const HELP = {
     <tr><td>Fly</td><td>${K('W')} ${K('A')} ${K('S')} ${K('D')}, ${K('E')} up, ${K('Q')} down, hold ${K('Shift')} to go faster</td></tr>
     <tr><td>Dolly</td><td>mouse wheel</td></tr>
     <tr><td>Focus on selection</td><td>${K('F')}</td></tr></table>
+    <h4>Ride</h4><p>Tick <b>Ride</b> while testing to sit inside a marble and see the track from its point of view. <b>W A S D</b> gives it a gentle push
+    (relative to where you face), <b>Tab</b> hops into the next marble, and right-drag glances around. Your marble is marked <b>you</b> in the results.</p>
     <h4>Follow mode</h4><p>Tick <b>Follow</b> while testing to chase the lead marble. Right-drag still turns the view around it and the wheel changes the distance.</p>`,
   Building: `
     <p>Click a part to select it. Parts are never dragged directly: use the gizmo.</p>
@@ -626,6 +631,7 @@ addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && k === 'd') { e.preventDefault(); if (selected && !sim) duplicate(selected); return; }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if ('wasdqe'.includes(k) || k === 'shift') { keys.add(k); return; }
+  if (k === 'tab' && ride.on) { e.preventDefault(); rideNext(); return; }
   if (k === ' ') { e.preventDefault(); sim ? togglePause() : play(); return; }
   if (k === 'escape') { if (connect) cancelConnect(); else select(null); return; }
   if (sim) return;
@@ -660,7 +666,7 @@ function play() {
   if (sim) return;
   if (!pieces.some((p) => p.type === 'spawner')) { toast('Add a Marble spawner first'); return; }
   if (connect) cancelConnect();
-  applyWood(true); sim = new Sim(RAPIER, scene, pieces, groups, settings); sim.trails = $('chkTrails').checked; paused = false;
+  ride.id = null; applyWood(true); sim = new Sim(RAPIER, scene, pieces, groups, settings); sim.trails = $('chkTrails').checked; paused = false;
   refreshSelectionVisuals(); setRunning(true); $('btnPause').textContent = 'Pause';
 }
 function stop() { if (!sim) return; sim.dispose(); sim = null; applyWood(false); setRunning(false); refreshSelectionVisuals(); $('hudTime').textContent = 'Edit mode'; }
@@ -678,7 +684,7 @@ function renderHud() {
   const cps = sim.checkpoints.map((c) => c.p);
   $('hudTable').innerHTML = '<table><tr><th>#</th><th>Status</th><th>Time s</th><th>Speed m/s</th><th>Max m/s</th><th>Distance m</th><th>Drop m</th>' +
     cps.map((c) => `<th>${c.name || 'CP #' + c.id} s</th>`).join('') + '</tr>' +
-    ms.map((m) => `<tr><td><span style="color:${m.color}">●</span> ${m.id}</td><td>${STATUS[m.status]}</td>` +
+    ms.map((m) => `<tr><td><span style="color:${m.color}">●</span> ${m.id}${ride.on && m.id === ride.id ? ' <b>you</b>' : ''}</td><td>${STATUS[m.status]}</td>` +
       `<td>${(m.finishT ?? m.endT ?? sim.time - m.spawnT).toFixed(2)}</td><td>${(m.body ? m.v : m.finishV ?? 0).toFixed(2)}</td>` +
       `<td>${m.vmax.toFixed(2)}</td><td>${m.dist.toFixed(2)}</td><td>${(m.startY - m.pos.y).toFixed(2)}</td>` +
       cps.map((c) => `<td>${m.splits[c.id] !== undefined ? m.splits[c.id].toFixed(2) : '–'}</td>`).join('') + '</tr>').join('') + '</table>';
@@ -763,6 +769,40 @@ function toggleSamples(on = $('samples').hidden) { if (on && sim) { toast('Stop 
 $('btnSamples').onclick = () => toggleSamples(true); $('samplesClose').onclick = () => toggleSamples(false);
 $('samples').addEventListener('pointerdown', (e) => { if (e.target === $('samples')) toggleSamples(false); });
 
+// ---------- ride a marble ----------
+const live = () => sim ? sim.marbles.filter((x) => x.body && x.status !== 'finished') : [];
+function rideTarget() {
+  const ms = live(); if (!ms.length) return null;
+  let m = ms.find((x) => x.id === ride.id);
+  if (!m) { m = ms[0]; ride.id = m.id; }
+  return m;
+}
+function rideNext() {
+  const ms = live(); if (!ms.length) return;
+  const i = ms.findIndex((x) => x.id === ride.id);
+  ride.id = ms[(i + 1) % ms.length].id; toast('Riding marble ' + ride.id);
+}
+function rideCamera(m, dt) {
+  if (!ride.on) { ride.on = true; ride.heading.copy(forward()); ride.yaw = ride.pitch = 0; follow.target = null; }
+  const v = m.body.linvel(), vel = new THREE.Vector3(v.x, v.y, v.z);
+  if (vel.length() > 0.3) ride.heading.lerp(vel.normalize(), 1 - Math.exp(-dt * 5)).normalize(); // smooth so bumps don't shake the view
+  if (!look.active) { const k = Math.exp(-dt * 3); ride.yaw *= k; ride.pitch *= k; } // glance springs back
+  const yaw = Math.atan2(-ride.heading.x, -ride.heading.z), pitch = THREE.MathUtils.clamp(Math.asin(ride.heading.y), -0.7, 0.7);
+  camera.rotation.set(pitch + ride.pitch, yaw + ride.yaw, 0);
+  camera.position.copy(m.mesh.position).y += m.radius * 0.25;
+  // You don't see your own marble or its trail.
+  for (const x of sim.marbles) if (x.mesh) { x.mesh.visible = x !== m; x.trail.visible = sim.trails && x !== m; }
+  // WASD rolls the marble relative to where you face (flat, so it can't fly).
+  const f = new THREE.Vector3(-Math.sin(yaw + ride.yaw), 0, -Math.cos(yaw + ride.yaw)), r = new THREE.Vector3(-f.z, 0, f.x), d = new THREE.Vector3();
+  if (keys.has('w')) d.add(f); if (keys.has('s')) d.sub(f); if (keys.has('d')) d.add(r); if (keys.has('a')) d.sub(r);
+  sim.steer = d.lengthSq() ? { m, dir: d.normalize() } : null;
+}
+function endRide() {
+  ride.on = false; if (sim) { sim.steer = null; for (const x of sim.marbles) if (x.mesh) x.mesh.visible = true; }
+  const e = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ'); look.yaw = e.y; look.pitch = e.x; // carry on from this view
+}
+$('chkRide').onchange = () => { $('chkRide').blur(); if (!$('chkRide').checked && ride.on) endRide(); }; // blur so WASD and Tab reach the ride
+
 // ---------- loop ----------
 try { const c = localStorage.getItem('chkAuto'); if (c) $('chkAuto').checked = c === '1'; } catch {}
 $('chkAuto').onchange = () => { try { localStorage.setItem('chkAuto', $('chkAuto').checked ? '1' : '0'); } catch {} if ($('chkAuto').checked && dirty) autoSave(); };
@@ -774,8 +814,11 @@ let last = performance.now(), hudT = 0;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (sim && !paused) sim.step(dt, parseFloat($('selSpeed').value));
-  const m = sim && $('chkFollow').checked && sim.marbles.find((x) => x.body);
-  if (m) {
+  const rider = sim && $('chkRide').checked ? rideTarget() : null;
+  if (ride.on && !rider) endRide();
+  const m = !rider && sim && $('chkFollow').checked && sim.marbles.find((x) => x.body);
+  if (rider) rideCamera(rider, dt);
+  else if (m) {
     // Chase cam: orbit the lead marble. Right-drag still turns the view (the camera swings around the marble),
     // the wheel changes the distance; WASD movement is ignored while following.
     if (!follow.target) { follow.target = m.mesh.position.clone(); lookAt(m.mesh.position); follow.dist = Math.min(8, camera.position.distanceTo(m.mesh.position)); }

@@ -19,10 +19,11 @@ export const SETTINGS = [
     { key: 'fallDepth', label: 'Lost below (m)', min: 1, max: 200, step: 1 },
     { key: 'trailLength', label: 'Trail points', min: 10, max: 5000, step: 10 },
     { key: 'removeFinished', label: 'Remove finished', type: 'bool' },
+    { key: 'steerAccel', label: 'Ride push m/s²', min: 0, max: 20, step: 0.5 },
   ]],
 ];
 export const defaultSettings = () => ({
   gravity: 9.81, stepRate: 240, solverIterations: 8, ccd: true,
   marblesHit: true, rollingResistance: 0.05, airDrag: 0, marbleRoughness: 0.15, marbleMetalness: 0.3,
-  stuckSpeed: 0.03, stuckTime: 4, fallDepth: 15, trailLength: 600, removeFinished: true,
+  stuckSpeed: 0.03, stuckTime: 4, fallDepth: 15, trailLength: 600, removeFinished: true, steerAccel: 4,
 });
