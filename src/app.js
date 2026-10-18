@@ -726,6 +726,19 @@ function openSample(smp) {
   if (!okToDiscard()) return;
   loadDoc({ camera: smp.camera, pieces: instantiate(smp, 1) }); filePath = null; markDirty(false); toggleSamples(false); toast('Opened sample: ' + smp.name);
 }
+// Sample of the day: fetched fresh from sample.marble at the root of the GitHub repo on every click.
+const DAILY_URL = 'https://raw.githubusercontent.com/Sluplersfe/marble-lab/main/sample.marble';
+async function openDaily() {
+  if (sim) { toast('Stop the test first'); return; }
+  if (!okToDiscard()) return;
+  toast('Downloading sample of the day…');
+  try {
+    const r = await fetch(DAILY_URL + '?t=' + Date.now(), { cache: 'no-store' }); // the query skips GitHub's CDN cache
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    loadDoc(JSON.parse(await r.text())); filePath = null; markDirty(false); toast('Opened sample of the day');
+  } catch (err) { toast('Could not load sample of the day: ' + err.message); }
+}
+$('btnDaily').onclick = openDaily;
 // Merge: add the sample's parts (fresh ids, links kept) beside the current track, clear of it, and look at them.
 function mergeSample(smp) {
   if (sim) return;

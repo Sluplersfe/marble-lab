@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Marble Lab</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-etiTLiHF1FM4oeqpo7Ih7qDdZtu4Njvf4KWs3fV3/Lw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-etiTLiHF1FM4oeqpo7Ih7qDdZtu4Njvf4KWs3fV3/Lw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data: https://raw.githubusercontent.com">
 <link rel="stylesheet" href="style.css">
 <script type="importmap">
 { "imports": {
@@ -19,6 +19,7 @@
   <div class="group">
     <button id="btnNew">New</button><button id="btnOpen">Open</button><button id="btnSave" title="Ctrl+S">Save</button><button id="btnSaveAs" title="Ctrl+Shift+S">Save as</button>
     <button id="btnSamples" title="Open or merge a sample course">Samples</button>
+    <button id="btnDaily" title="Download and open today's featured track from GitHub">Sample of the day</button>
     <button id="btnUndo" title="Ctrl+Z">Undo</button><button id="btnRedo" title="Ctrl+Shift+Z">Redo</button>
   </div>
   <div class="group sim">

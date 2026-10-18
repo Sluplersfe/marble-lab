@@ -1,0 +1,172 @@
+{
+ "app": "marble-lab",
+ "version": 3,
+ "camera": {
+  "pos": [
+   14,
+   8,
+   12
+  ],
+  "target": [
+   2,
+   3,
+   0
+  ]
+ },
+ "settings": {
+  "gravity": 9.81,
+  "stepRate": 240,
+  "solverIterations": 8,
+  "ccd": true,
+  "marblesHit": true,
+  "rollingResistance": 0.05,
+  "airDrag": 0,
+  "marbleRoughness": 0.15,
+  "marbleMetalness": 0.3,
+  "stuckSpeed": 0.03,
+  "stuckTime": 4,
+  "fallDepth": 15,
+  "trailLength": 600,
+  "removeFinished": true
+ },
+ "pieces": [
+  {
+   "id": 1,
+   "type": "spawner",
+   "pos": [
+    7,
+    2.4,
+    0
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "count": 6,
+   "interval": 1.2,
+   "radius": 0.35,
+   "density": 1,
+   "bounce": 0.3,
+   "friction": 0.4,
+   "launchSpeed": 0,
+   "spread": 0.02,
+   "color": "#e8e8f0",
+   "randomColors": true
+  },
+  {
+   "id": 2,
+   "type": "path",
+   "pos": [
+    7.5,
+    1.7,
+    0
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "channel",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     -4.9,
+     -1,
+     0
+    ]
+   ]
+  },
+  {
+   "id": 3,
+   "type": "lift",
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "height": 5,
+   "speed": 2,
+   "dump": 60,
+   "settle": 0.6,
+   "gate": true,
+   "color": "#b05fbf"
+  },
+  {
+   "id": 4,
+   "type": "path",
+   "pos": [
+    0.5,
+    4.6,
+    0
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "profile": "channel",
+   "width": 1,
+   "wall": 0.4,
+   "friction": 0.4,
+   "color": "#4f7dbf",
+   "points": [
+    [
+     0,
+     0,
+     0
+    ],
+    [
+     5,
+     -1,
+     0
+    ]
+   ]
+  },
+  {
+   "id": 5,
+   "type": "finish",
+   "pos": [
+    6.2,
+    3.4,
+    0
+   ],
+   "rotX": 0,
+   "rotY": 0,
+   "rotZ": 0,
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "sx": 2,
+   "sy": 1.5,
+   "sz": 2
+  }
+ ]
+}
