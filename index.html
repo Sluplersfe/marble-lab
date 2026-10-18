@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Marble Lab</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-etiTLiHF1FM4oeqpo7Ih7qDdZtu4Njvf4KWs3fV3/Lw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' data:">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "./node_modules/three/build/three.module.js",
+  "three/addons/": "./node_modules/three/examples/jsm/",
+  "rapier": "./node_modules/@dimforge/rapier3d-compat/dist/rapier.mjs"
+} }
+</script>
+</head>
+<body>
+<header id="top">
+  <div class="brand">Marble Lab</div>
+  <div class="group">
+    <button id="btnNew">New</button><button id="btnOpen">Open</button><button id="btnSave" title="Ctrl+S">Save</button><button id="btnSaveAs" title="Ctrl+Shift+S">Save as</button>
+    <button id="btnSamples" title="Open or merge a sample course">Samples</button>
+    <button id="btnUndo" title="Ctrl+Z">Undo</button><button id="btnRedo" title="Ctrl+Shift+Z">Redo</button>
+  </div>
+  <div class="group sim">
+    <button id="btnPlay" class="primary">▶ Test</button>
+    <button id="btnPause" disabled>Pause</button>
+    <button id="btnStop" disabled>■ Stop</button>
+    <label>Speed <select id="selSpeed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label>
+    <label><input type="checkbox" id="chkFollow"> Follow</label>
+    <label><input type="checkbox" id="chkTrails" checked> Trails</label>
+  </div>
+  <div class="group">
+    <button id="mode-move" title="G">Move</button><button id="mode-rotate" title="R">Rotate</button><button id="mode-scale" title="T">Scale</button>
+    <button id="btnConnect" title="C: snap one part's opening onto another's">Quick connect</button>
+    <button id="btnBridge" title="B: build a tube between two openings">Bridge</button>
+  </div>
+  <div class="group">
+    <label><input type="checkbox" id="chkSnap" checked> Snap</label>
+    <label title="Save 2 s after each change (untitled tracks are kept as a backup)"><input type="checkbox" id="chkAuto" checked> Auto save</label>
+    <button id="btnShot">Screenshot</button>
+    <button id="btnHelp" title="F1 or ?">Help</button>
+  </div>
+</header>
+<aside id="parts"><h3>Add part</h3>
+  <input type="search" id="partSearch" placeholder="Search parts…  ( / )" autocomplete="off">
+  <div id="partList"></div>
+  <p class="hint" id="partNone" hidden>No parts match.</p>
+</aside>
+<main id="view"><canvas id="c"></canvas>
+  <div id="toast"></div>
+</main>
+<aside id="props"><h3>Properties</h3><div id="propBody"><p class="hint">Nothing selected.</p></div></aside>
+<footer id="hud"><div id="hudTime">Edit mode</div><div id="hudTable"></div></footer>
+<div class="split v" id="splitL" title="Drag to resize"></div><div class="split v" id="splitR" title="Drag to resize"></div><div class="split h" id="splitH" title="Drag to resize"></div>
+<div id="samples" class="modal" hidden><div class="help-card samples-card"><header><b>Sample courses</b><span class="hint">Open one to look at and test it, or merge it into your track.</span><span style="flex:1"></span><button id="samplesClose" title="Esc">✕</button></header><div id="samplesBody"></div></div></div>
+<div id="help" hidden><div class="help-card"><header><b>Marble Lab help</b><nav id="helpTabs"></nav><button id="helpClose" title="Esc">✕</button></header><div id="helpBody"></div></div></div>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

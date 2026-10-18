@@ -1,0 +1,1 @@
+{"name":"marble-lab","version":"0.1.0","main":"main.js","scripts":{"start":"electron ."},"dependencies":{"@dimforge/rapier3d-compat":"^0.21.0","three":"^0.186.1"},"devDependencies":{"electron":"^44.9.0"}}
