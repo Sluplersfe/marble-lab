@@ -7,7 +7,7 @@ export const SETTINGS = [
     { key: 'ccd', label: 'Anti-tunnelling', type: 'bool' },
   ]],
   ['Marbles', [
-    { key: 'marblesHit', label: 'Hit each other (not in lifts/funnels)', type: 'bool' },
+    { key: 'marblesHit', label: 'Hit each other (not in lifts/funnel necks)', type: 'bool' },
     { key: 'rollingResistance', label: 'Rolling resist.', min: 0, max: 5, step: 0.01 },
     { key: 'airDrag', label: 'Air drag', min: 0, max: 5, step: 0.01 },
     { key: 'marbleRoughness', label: 'Look: roughness', min: 0, max: 1, step: 0.05 },

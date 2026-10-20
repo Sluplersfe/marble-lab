@@ -161,6 +161,34 @@ const TRACK = [PROFILE,
   { key: 'color', label: 'Color', type: 'color' }];
 const trackDefaults = { profile: 'channel', width: 1.0, wall: 0.4, friction: 0.4, color: '#4f7dbf' };
 
+// ---------- no-collision zones ----------
+// Areas where marbles pass through each other: spline points marked "No collisions" (index 6 of a point) and the
+// narrow neck of a funnel. Shown as translucent orange; the simulation uses noCollideZones() for the same areas.
+const ZONE_MAT = new THREE.MeshBasicMaterial({ color: '#ff8f00', transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide });
+function zoneMesh(geo) { const m = new THREE.Mesh(geo, ZONE_MAT); m.userData.collide = false; m.userData.zone = true; m.renderOrder = 5; return m; }
+function pathCurve(p) {
+  const P = p.points.map(v3), L = P.length;
+  const ghost = (end, next, dir) => end.clone().add((dir ? v3(dir).normalize() : end.clone().sub(next).normalize()).multiplyScalar(end.distanceTo(next)));
+  return new THREE.CatmullRomCurve3([ghost(P[0], P[1], p.startDir), ...P, ghost(P[L - 1], P[L - 2], p.endDir)], false, 'centripetal');
+}
+// For a path: a list of { pts, r } in local space, one per marked point, covering the track from halfway back to
+// the previous point to halfway on to the next. A marble whose centre is within r of any of pts is inside.
+export function noCollideZones(p) {
+  if (p.type !== 'path' || !p.points.some((q) => q[6])) return [];
+  const curve = pathCurve(p), L = p.points.length, M = L + 2, out = [];
+  p.points.forEach((q, i) => {
+    if (!q[6]) return;
+    const t0 = Math.max(1, i + 0.5) / (M - 1), t1 = Math.min(L, i + 1.5) / (M - 1);
+    const w = p.width * (q[4] ?? 1), h = p.wall * (q[5] ?? 1), lift = p.centered ? 0 : h * 0.4;
+    const n = Math.max(4, Math.ceil(curve.getLength() * (t1 - t0) / 0.15)), pts = [];
+    for (let k = 0; k <= n; k++) pts.push(curve.getPoint(t0 + (t1 - t0) * (k / n)).add(new THREE.Vector3(0, lift, 0)));
+    out.push({ pts, r: Math.max(w, h) * 0.6 + 0.15 });
+  });
+  return out;
+}
+// Height in a funnel below which two marbles of radius rl can't sit side by side.
+export function funnelNeckTop(p, rl) { return p.radius > p.hole ? p.height * (2 * rl - p.hole) / (p.radius - p.hole) : (p.hole < 2 * rl ? p.height : -1e9); }
+
 function trackMesh(p, pts) {
   const enclosed = p.profile === 'tube' || p.profile === 'boxtube';
   return mesh(sweep(pts, p.profile, p.width, p.wall, p.centered, { start: p.startDir, end: p.endDir }), p.color, { opacity: enclosed ? 0.35 : undefined, friction: p.friction });
@@ -234,7 +262,10 @@ export const TYPES = {
     label: 'Path', editPoints: true,
     defaults: () => ({ ...trackDefaults, points: [[0, 0, 0], [4, -1, 0]] }),
     params: TRACK,
-    build(p, g) { g.add(trackMesh(p, p.points)); },
+    build(p, g) {
+      g.add(trackMesh(p, p.points));
+      for (const z of noCollideZones(p)) g.add(zoneMesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(z.pts), Math.max(4, z.pts.length), z.r, 14, false)));
+    },
   },
   spiral: {
     label: 'Spiral',
@@ -252,6 +283,13 @@ export const TYPES = {
     build(p, g) {
       const prof = [new THREE.Vector2(p.hole, -p.spout), new THREE.Vector2(p.hole, 0), new THREE.Vector2(p.radius, p.height), new THREE.Vector2(p.radius, p.height + 0.3)];
       g.add(mesh(new THREE.LatheGeometry(prof, 40), p.color, { friction: p.friction }));
+      // The neck where marbles don't collide, drawn for the default marble size.
+      const rl = TYPES.spawner.defaults().radius, top = Math.min(p.height, funnelNeckTop(p, rl));
+      if (top > -p.spout) {
+        const wall = (y) => (y <= 0 ? p.hole : p.hole + (p.radius - p.hole) * Math.min(1, y / p.height));
+        const z = [[0.001, -p.spout - rl], [p.hole, -p.spout - rl], [p.hole, Math.min(0, top)], [wall(top), top], [wall(top), top + rl], [0.001, top + rl]].map(([x, y]) => new THREE.Vector2(x, y));
+        g.add(zoneMesh(new THREE.LatheGeometry(z, 32)));
+      }
     },
   },
   pegboard: {

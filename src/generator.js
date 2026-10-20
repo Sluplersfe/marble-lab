@@ -1,5 +1,5 @@
 // Track generator: adds random parts one at a time onto the last opening, tests each new part with real
-// physics (marbles start where they left the previous part), and keeps it only if they make it through.
+// physics (marbles always run from the spawner through the whole track), and keeps it only if they make it through.
 // Parts that fail are retried with new random choices; after too many failures it backs up a part.
 import * as THREE from 'three';
 import { TYPES, ports, buildPiece } from './pieces.js';
@@ -119,32 +119,29 @@ export class Generator {
     return this.piece('finish', { pos: c.toArray().map(r3), sx: 3, sy: 2, sz: 3 });
   }
 
-  // Run marbles through prev + cand, starting where they left prev. Resolves to the crossing state or null.
-  async test(prev, cand, st, isFinish) {
+  // Run marbles from the spawner through the whole track so far plus cand. Resolves to the state where they
+  // leave cand (plus the path they took after the previous exit), or null if any marble doesn't make it.
+  async test(cand, st, isFinish) {
     this.tests++;
     const scene = new THREE.Scene(), groups = new Map();
-    const sp = this.piece('spawner', { pos: st.spawnPos.toArray(), count: 0 });
-    const list = [prev, cand, sp].filter(Boolean);
+    const list = [...this.stack.map((x) => (x.piece.type === 'spawner' ? { ...x.piece, count: 0 } : x.piece)), cand];
     for (const p of list) groups.set(p.id, buildPiece(p));
     const sim = new Sim(this.R, scene, list, groups, { ...defaultSettings(), marblesHit: false, removeFinished: false, stuckTime: 1e9 });
+    const waits = list.some((p) => p.type === 'lift') ? 10 : 2.5; // a lift's queue may wait for the cup
     try {
-      for (let j = 0; j < 3; j++) {
-        sim.spawn(sim.spawners[0]); const m = sim.marbles.at(-1);
-        const p0 = st.spawnPos.clone().add(V([(this.rng() - 0.5) * 0.06, 0, (this.rng() - 0.5) * 0.06]));
-        // Each test marble arrives a little faster or slower, so a part only passes if it isn't a knife-edge.
-        m.body.setTranslation(p0, true); m.body.setLinvel(st.vel.clone().multiplyScalar(1 + (j - 1) * 0.12), true); m.body.setAngvel(st.spin, true);
-        m.pos.copy(p0); m.last.copy(p0);
-      }
+      for (let j = 0; j < 3; j++) sim.spawn(sim.spawners[0]); // spread apart a little by the spawner's spread
+      let recording = this.stack.length === 1;
       const ex = isFinish ? null : portWorld(cand, groups.get(cand.id), -1);
       const tol = cand.type === 'pegboard' ? cand.width / 2 + 0.3 : 1.3;
       const reached = new Map(), traj = [], d = new THREE.Vector3();
-      const steps = Math.round(25 / sim.h);
+      const steps = Math.round((25 + 8 * this.stack.length) / sim.h);
       for (let i = 0; i < steps; i++) {
         sim.tick();
-        if (i % 12 === 0) traj.push(sim.marbles[0].pos.clone());
+        if (!recording && sim.marbles[0].pos.distanceTo(st.X) < 1.5) recording = true; // only the stretch after the last exit
+        if (recording && i % 12 === 0) traj.push(sim.marbles[0].pos.clone());
         for (const m of sim.marbles) {
           if (reached.has(m)) continue;
-          if (m.status === 'lost' || m.stillT > (cand.type === 'lift' ? 10 : 2.5)) return null; // a lift's queue may wait for the cup
+          if (m.status === 'lost' || m.stillT > waits) return null;
           if (isFinish) { if (m.status === 'finished') reached.set(m, null); continue; }
           d.copy(m.pos).sub(ex.pos); const along = d.dot(ex.dir), lat = d.addScaledVector(ex.dir, -along).length();
           if (along > 0 && along < 1.5 && lat < tol) { const v = m.body.linvel(), w = m.body.angvel(); reached.set(m, { pos: m.pos.clone(), vel: V([v.x, v.y, v.z]), spin: V([w.x, w.y, w.z]) }); }
@@ -184,7 +181,7 @@ export class Generator {
       const cand = done ? this.makeFinish(T.state, T.fails) : this.makePart(this.chooseType(T), T.state);
       const pts = done ? [] : surfacePoints(buildPiece(cand));
       if (this.overlaps(pts, top)) { T.fails++; continue; }
-      const res = await this.test(top ? T.piece : null, cand, T.state, done);
+      const res = await this.test(cand, T.state, done);
       if (!res || this.overlaps(res.traj, top)) { T.fails++; continue; }
       if (done) return cand;
       this.claim(pts, top + 1); this.claim(res.traj, top + 1);

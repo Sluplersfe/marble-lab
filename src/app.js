@@ -114,7 +114,7 @@ function redo() { if (!redoStack.length || sim) return; undoStack.push(snapshot(
 function rebuild(p) {
   const old = groups.get(p.id); if (old) { scene.remove(old); }
   const g = buildPiece(p); scene.add(g); groups.set(p.id, g);
-  if (selected === p) refreshSelectionVisuals();
+  if (selected === p) refreshSelectionVisuals(); else showZones();
   if (connect) showPorts();
 }
 function retransform(p) { const g = groups.get(p.id); applyTransform(p, g); g.updateMatrixWorld(true); refreshSelectionVisuals(); }
@@ -135,8 +135,10 @@ function deletePiece(p) { pushUndo(); scene.remove(groups.get(p.id)); groups.del
 function duplicate(p) { pushUndo(); const c = structuredClone(p); c.id = nextId++; c.pos = [p.pos[0] + 1, p.pos[1], p.pos[2] + 1]; pieces.push(c); rebuild(c); select(c); }
 
 // ---------- selection ----------
+// Orange no-collision areas show only for the selected part, and never while testing.
+function showZones() { for (const [id, g] of groups) g.traverse((o) => { if (o.userData.zone) o.visible = !sim && selected?.id === id; }); }
 function refreshSelectionVisuals() {
-  handles.clear(); if (selBox) { scene.remove(selBox); selBox = null; }
+  showZones(); handles.clear(); if (selBox) { scene.remove(selBox); selBox = null; }
   placeGizmo();
   if (!selected || sim) return;
   const g = groups.get(selected.id); g.updateMatrixWorld(true);
@@ -186,9 +188,8 @@ function paramInput(d, obj, apply) {
   } else if (d.type === 'color') {
     inp = document.createElement('input'); inp.type = 'color'; inp.value = obj[d.key]; inp.onchange = () => apply(() => (obj[d.key] = inp.value));
   } else if (d.label.includes('°') && !d.label.includes('°/s')) {
-    const lo = Math.ceil(d.min / 15) * 15, hi = Math.floor(d.max / 15) * 15;
-    inp = numInput(obj[d.key], 15, (v) => apply(() => (obj[d.key] = Math.min(hi, Math.max(lo, Math.round(v / 15) * 15)))), lo, hi);
-  } else inp = numInput(obj[d.key], d.step, (v) => apply(() => (obj[d.key] = Math.min(d.max, Math.max(d.min, v)))), d.min, d.max);
+    inp = numInput(obj[d.key], 15, (v) => apply(() => (obj[d.key] = Math.round(v / 15) * 15))); // no limits, only the 15° latch
+  } else inp = numInput(obj[d.key], d.step, (v) => apply(() => (obj[d.key] = v))); // no limits
   return row(d.label, inp);
 }
 function renderSettings(body) {
@@ -209,7 +210,7 @@ function renderProps() {
   const h = document.createElement('div'); h.innerHTML = `<span class="tag">${T.label}</span> <span class="hint">#${p.id}</span>`; body.append(h);
   body.append(row('Location', ...[0, 1, 2].map((i) => numInput(p.pos[i], 0.25, (v) => edit(() => (p.pos[i] = snapV(v)))))));
   body.append(row('Rotation°', ...['rotX', 'rotY', 'rotZ'].map((k) => numInput(p[k] || 0, 15, (v) => edit(() => (p[k] = snapA(v)))))));
-  body.append(row('Scale', ...[0, 1, 2].map((i) => numInput(p.scale[i], 0.1, (v) => edit(() => (p.scale[i] = Math.max(0.05, v))), 0.05))));
+  body.append(row('Scale', ...[0, 1, 2].map((i) => numInput(p.scale[i], 0.1, (v) => edit(() => (p.scale[i] = v))))));
   const defs = T.defaults(); for (const d of T.params) if (p[d.key] === undefined) p[d.key] = defs[d.key]; // older files
   for (const d of T.params) body.append(paramInput(d, p, edit));
   if (T.editPoints) {
@@ -219,8 +220,10 @@ function renderProps() {
       const r = document.createElement('div'); r.className = 'row'; const n = document.createElement('label'); n.textContent = i; r.append(n);
       [0, 1, 2].forEach((k) => r.append(numInput(pt[k], 0.025, (v) => edit(() => (pt[k] = snapP(v))))));
       box.append(r, row('Roll°', numInput(pt[3] || 0, 15, (v) => edit(() => (pt[3] = snapA(v))))),
-        row('Width ×', numInput(pt[4] ?? 1, 0.05, (v) => edit(() => { pt[3] ??= 0; pt[4] = Math.min(5, Math.max(0.3, v)); pt[5] ??= 1; }), 0.3, 5)),
-        row('Height ×', numInput(pt[5] ?? 1, 0.05, (v) => edit(() => { pt[3] ??= 0; pt[4] ??= 1; pt[5] = Math.min(5, Math.max(0.3, v)); }), 0.3, 5)));
+        row('Width ×', numInput(pt[4] ?? 1, 0.05, (v) => edit(() => { pt[3] ??= 0; pt[4] = v; pt[5] ??= 1; }))),
+        row('Height ×', numInput(pt[5] ?? 1, 0.05, (v) => edit(() => { pt[3] ??= 0; pt[4] ??= 1; pt[5] = v; }))),
+        row('No collisions', Object.assign(document.createElement('input'), { type: 'checkbox', checked: !!pt[6], title: 'Marbles pass through each other around this point (orange area)',
+          onchange: (e) => edit(() => { pt[3] ??= 0; pt[4] ??= 1; pt[5] ??= 1; pt[6] = e.target.checked ? 1 : 0; }) })));
       if (i === 0 || i === p.points.length - 1) {
         // End points also carry the direction the track leaves/enters at that end.
         const dk = i === 0 ? 'startDir' : 'endDir', [yw, pc] = dirToYP(ports(p)[i === 0 ? 0 : 1].dir);
@@ -499,10 +502,10 @@ function gizmoDrag(e) {
     let f;
     if (drag.D) { const t = axisParam(drag.O, drag.D); if (t === null || Math.abs(drag.t0) < 1e-3) return; f = t / drag.t0; }
     else f = Math.exp((drag.y0 - e.clientY) * 0.006);
-    const sn = (v) => Math.max(0.05, snapOn() ? Math.round(v * 20) / 20 : fmt(v));
+    const sn = (v) => (snapOn() ? Math.round(v * 20) / 20 : fmt(v));
     if (drag.m === 'pscale') {
       // Width/height of the track cross-section at this point only.
-      const pt = p.points[selPoint], [w, h] = drag.s0.map((s, i) => (drag.axis === 3 || drag.axis === i ? Math.min(5, Math.max(0.3, sn(s * f))) : s));
+      const pt = p.points[selPoint], [w, h] = drag.s0.map((s, i) => (drag.axis === 3 || drag.axis === i ? sn(s * f) : s));
       pt[3] ??= 0; pt[4] = w; pt[5] = h; rebuild(p); return;
     }
     p.scale = drag.s0.map((s, i) => (drag.axis === 3 || drag.axis === i ? sn(s * f) : s)); retransform(p);
@@ -660,7 +663,7 @@ function applyWood(on) {
   for (const p of pieces) {
     if (p.type === 'spawner' || p.type === 'finish' || p.type === 'checkpoint') continue; // markers keep their look
     groups.get(p.id).traverse((o) => {
-      if (!o.isMesh) return;
+      if (!o.isMesh || o.userData.zone) return; // no-collision areas keep their orange look
       if (on) { o.userData.edit = { mat: o.material, geo: o.geometry }; o.material = woodMaterial(o.material.transparent); o.geometry = ensureWoodUVs(o.geometry); }
       else if (o.userData.edit) { o.material = o.userData.edit.mat; o.geometry = o.userData.edit.geo; delete o.userData.edit; }
     });
@@ -784,7 +787,7 @@ $('btnGen').onclick = () => toggleGen(true); $('genClose').onclick = () => toggl
 $('genCancel').onclick = () => gen && (gen.cancelled = true);
 $('genGo').onclick = async () => {
   if (gen || !okToDiscard()) return;
-  const count = THREE.MathUtils.clamp(Math.round(+$('genCount').value || 10), 2, 60);
+  const count = Math.max(1, Math.round(+$('genCount').value || 10));
   const seedText = $('genSeed').value.trim(), seed = seedText ? [...seedText].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7) : Math.floor(Math.random() * 1e9);
   gen = new Generator(RAPIER, { count, seed, lifts: $('genLifts').checked, pegboards: $('genPegs').checked, loops: $('genLoops').checked, settings });
   $('genGo').disabled = true; $('genCancel').hidden = false;
